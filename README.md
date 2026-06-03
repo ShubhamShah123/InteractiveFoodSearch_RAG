@@ -15,7 +15,8 @@ A semantic food recommendation system built with **ChromaDB** (vector database) 
 │   └── interactive_search.py    # Entry point for the CLI system
 │
 ├── Part 2 - Advanced Search/
-│   └── (coming soon)
+│   ├── advanced_search_functions.py  # All advanced search modes & display logic
+│   └── advanced_search.py            # Entry point for the advanced search system
 │
 ├── Part 3 - RAG Chatbot/
 │   └── (coming soon)
@@ -136,9 +137,100 @@ Search for food: baked goods with cheese
 
 ## Part 2 — Advanced Search
 
-> 🚧 **Coming Soon**
->
-> This section will cover advanced search capabilities including multi-filter queries, faceted search, hybrid search strategies, and an enhanced search interface built on top of the ChromaDB collection.
+An interactive menu-driven search system that extends Part 1 with **cuisine filtering**, **calorie filtering**, **combined filters**, and a **demo mode** — all built on top of the same ChromaDB collection from `shard_functions.py`.
+
+### Files
+
+| File | Description |
+|---|---|
+| `advanced_search_functions.py` | All search modes, display logic, demo mode, and the interactive menu loop |
+| `advanced_search.py` | Entry point — loads data, sets up the collection, and launches the advanced search interface |
+
+### How It Works
+
+**1. Entry Point (`advanced_search.py` → `main`)**
+
+Loads the food dataset using `load_food_data`, creates a new ChromaDB collection named `advanced_food_search`, populates it via `populate_similarity_collection`, then hands control to `interactive_advanced_search`.
+
+**2. Result Display (`advanced_search_functions.py` → `display_search_results`)**
+
+A shared display utility used by all search modes. Accepts a `showDetails` flag:
+- `True` — shows full details: name, similarity score, cuisine, calories, and description
+- `False` — shows names only (used in demo mode for a compact summary view)
+
+**3. Search Modes (`advanced_search_functions.py`)**
+
+| Mode | Function | Description |
+|---|---|---|
+| Basic Search | `perform_basic_search` | Free-text similarity search, returns top 5 results |
+| Cuisine Filter | `perform_cuisine_filtered_search` | Picks a cuisine from a predefined list, then searches within it |
+| Calorie Filter | `perform_calorie_filtered_search` | Searches with an optional maximum calorie cap |
+| Combined Filter | `perform_combined_filtered_search` | Applies both cuisine and calorie filters simultaneously |
+| Demo Mode | `demo_mode` | Runs 3 predefined demonstrations step-by-step with Enter to continue |
+| Help | `advanced_help` | Prints tips and descriptions for all search types |
+
+**4. Interactive Menu (`advanced_search_functions.py` → `interactive_advanced_search`)**
+
+A numbered menu loop (options 1–7) that maps each choice to its corresponding function. Handles invalid input and `KeyboardInterrupt` gracefully.
+
+**5. Demo Mode (`advanced_search_functions.py` → `demo_mode`)**
+
+Runs three predefined search scenarios automatically to showcase the filtering system:
+
+| Demo | Query | Filters |
+|---|---|---|
+| Italian Cuisine Search | `creamy pasta` | Cuisine: Italian |
+| Low-Calorie Healthy Options | `healthy meal` | Max Calories: 300 |
+| Asian Light Dishes | `light fresh meal` | Cuisine: Japanese, Max Calories: 250 |
+
+### Running Part 2
+
+```bash
+python advanced_search.py
+```
+
+### Menu Options
+
+```
+========================================
+ADVANCED SEARCH WITH FILTERS
+========================================
+    1: Basic Similarity Search
+    2: Cuisine-Filtered Search
+    3: Calorie-Filtered Search
+    4: Combined Filters Search
+    5: Demo Mode
+    6: Help
+    7: Exit
+```
+
+### Supported Cuisines (for Cuisine Filter)
+
+`Italian`, `Thai`, `Mexican`, `Indian`, `Japanese`, `French`, `Mediterranean`, `American`, `Health Food`, `Dessert`
+
+### Sample Output
+
+```
+[+] Performing cuisine filtered search ...
+Available Cuisines:
+    1. Italian
+    2. Thai
+    ...
+
+Enter the search query: creamy pasta
+Enter the cuisine number or name: 1
+
+    [X] Searching for 'creamy pasta' in Italian cuisine...
+
+#### Cuisine-Filtered Results - Italian ####
+
+1. Fettuccine Alfredo
+> Similarity Score: 91.3%
+> Cuisine: Italian
+> Calories: 520
+> Description: Creamy pasta with butter and parmesan...
+##########
+```
 
 ---
 

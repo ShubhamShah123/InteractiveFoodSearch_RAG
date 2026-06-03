@@ -174,7 +174,7 @@ def perform_filtered_similarity_search(collection, query: str, cuisine_filter: s
 	if cuisine_filter:
 		filters.append({'cuisine_filter': cuisine_filter})
 	if max_calories:
-		filter.append({'max_calories': max_calories})
+		filters.append({'max_calories': max_calories})
 
 	# Where clause based on the number of filters
 	where_clause = filters[0] if len(filters) == 1 else {"$and": filters} if len(filters) > 1 else None
