@@ -1,153 +1,167 @@
-# Food Recommendation System using ChromaDB and RAG
+# 🍽️ Food Recommendation System using ChromaDB and RAG
 
-A hands-on project that builds an intelligent food recommendation chatbot using **ChromaDB** as a vector database and **Retrieval-Augmented Generation (RAG)** to deliver personalized, context-aware food suggestions.
-
----
-
-## 📌 Overview
-
-This project demonstrates how to combine vector similarity search with large language models (LLMs) to create a smart recommendation system. Instead of relying solely on an LLM's training data, we store food-related information in ChromaDB and retrieve the most relevant entries before generating a response — making recommendations more accurate and grounded.
+A semantic food recommendation system built with **ChromaDB** (vector database) and **RAG** (Retrieval-Augmented Generation). The project is structured into three progressive parts — a CLI-based chatbot, an advanced search interface, and a RAG-powered conversational assistant.
 
 ---
 
-## 🧠 Key Concepts
-
-| Concept | Description |
-|---|---|
-| **ChromaDB** | An open-source vector database for storing and querying embeddings |
-| **Embeddings** | Numerical vector representations of text that capture semantic meaning |
-| **RAG** | Retrieval-Augmented Generation — enhancing LLM responses with retrieved context |
-| **Similarity Search** | Finding the most semantically similar items in a vector store |
-
----
-
-## 🛠️ Tech Stack
-
-- **Python**
-- **ChromaDB** — vector database
-- **Sentence Transformers / OpenAI Embeddings** — for generating text embeddings
-- **LLM (e.g., OpenAI GPT / IBM Watsonx)** — for generating recommendations
-- **Theia IDE** (Skills Network browser-based environment)
-
----
-
-## 🚀 How It Works
+## 📁 Project Structure
 
 ```
-User Query
-    │
-    ▼
-Generate Embedding (query → vector)
-    │
-    ▼
-ChromaDB Similarity Search
-    │
-    ▼
-Retrieve Top-K Relevant Food Items
-    │
-    ▼
-Pass Context + Query to LLM
-    │
-    ▼
-Generate Personalized Food Recommendation
-```
-
-1. **Ingest Data** — Food items (dishes, recipes, cuisines) are embedded and stored in ChromaDB.
-2. **Query** — A user asks for a recommendation (e.g., *"suggest a light Italian dinner"*).
-3. **Retrieve** — ChromaDB finds the most semantically similar food items.
-4. **Generate** — The LLM uses the retrieved context to craft a tailored recommendation.
-
----
-
-## 📂 Project Structure
-
-```
-food-recommendation-rag/
+├── FoodDataSet.json              # Food dataset (JSON)
 │
-├── data/
-│   └── food_data.json          # Food items dataset
+├── Part 1 - CLI/
+│   ├── shard_functions.py        # Core ChromaDB & embedding utilities
+│   ├── cli_functions.py          # CLI chatbot logic & display helpers
+│   └── interactive_search.py    # Entry point for the CLI system
 │
-├── src/
-│   ├── ingest.py               # Embed and load data into ChromaDB
-│   ├── retrieve.py             # Query ChromaDB for similar items
-│   └── recommend.py            # RAG pipeline — retrieve + generate
+├── Part 2 - Advanced Search/
+│   └── (coming soon)
 │
-├── chroma_db/                  # Persisted ChromaDB vector store
+├── Part 3 - RAG Chatbot/
+│   └── (coming soon)
 │
-├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## ⚙️ Setup & Installation
+## 🔧 Prerequisites
+
+- Python 3.8+
+- pip
+
+## 📦 Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/food-recommendation-rag.git
-cd food-recommendation-rag
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-**requirements.txt** includes:
-```
-chromadb
-sentence-transformers
-openai        # or ibm-watsonx-ai
+pip install chromadb sentence-transformers numpy
 ```
 
 ---
 
-## 📖 Usage
+## Part 1 — CLI Food Recommendation Chatbot
 
-### 1. Ingest food data into ChromaDB
+An interactive command-line chatbot that uses **ChromaDB** and **sentence-transformer embeddings** to perform semantic similarity search over a food dataset.
+
+### Files
+
+| File | Description |
+|---|---|
+| `shard_functions.py` | Core utilities — loads data, creates/populates ChromaDB collection, performs similarity & filtered search |
+| `cli_functions.py` | CLI display logic — handles search output, related search suggestions, and the interactive chat loop |
+| `interactive_search.py` | Entry point — initializes the database and launches the chatbot |
+
+### How It Works
+
+**1. Data Loading (`shard_functions.py` → `load_food_data`)**
+
+Reads `FoodDataSet.json` and normalizes each food item to ensure required fields are present:
+- `food_id`, `food_ingredients`, `food_description`, `cuisine_type`, `food_calories_per_serving`, `taste_profile`
+
+**2. Collection Setup (`shard_functions.py` → `create_similarity_search_collection`)**
+
+Creates a ChromaDB collection using the **`all-MiniLM-L6-v2`** sentence transformer model for generating semantic embeddings, with cosine similarity as the distance metric.
+
+**3. Populating the Collection (`shard_functions.py` → `populate_similarity_collection`)**
+
+Each food item is converted into a rich text document combining:
+- Name, description, ingredients, cuisine type, cooking method, taste profile, health benefits, and nutritional factors
+
+These documents are embedded and stored in ChromaDB along with metadata for filtering.
+
+**4. Similarity Search (`shard_functions.py` → `perform_similarity_search`)**
+
+Accepts a natural language query, embeds it, and retrieves the top-N most semantically similar food items. Returns results with a **similarity score** (1 - cosine distance).
+
+**5. Filtered Search (`shard_functions.py` → `perform_filtered_similarity_search`)**
+
+Extends similarity search with optional metadata filters:
+- `cuisine_filter` — filter by cuisine type
+- `max_calories` — filter by maximum calories per serving
+
+**6. CLI Chatbot (`cli_functions.py` → `interactive_chat_bot`)**
+
+An interactive REPL loop that:
+- Accepts free-text food queries from the user
+- Calls `handle_food_search` to display ranked results with match scores, cuisine, calories, and description
+- Suggests related searches based on result cuisine types and average calories
+- Supports `help` and `quit` commands
+
+### Running Part 1
+
 ```bash
-python src/ingest.py
+python interactive_search.py
 ```
 
-### 2. Run the recommendation system
-```bash
-python src/recommend.py --query "I want something spicy and vegetarian"
+### CLI Commands
+
+| Command | Description |
+|---|---|
+| Any text | Search for food by name, ingredient, or description |
+| `help` / `h` | Show help menu with example searches |
+| `quit` / `exit` / `q` | Exit the chatbot |
+| `Ctrl+C` | Emergency exit |
+
+### Example Searches
+
+```
+Search for food: chocolate dessert
+Search for food: Italian food
+Search for food: low calorie
+Search for food: baked goods with cheese
 ```
 
-### 3. Example output
+### Sample Output
+
 ```
-Query: "I want something spicy and vegetarian"
+🔍 Searching for 'chocolate dessert'...
 
-Retrieved Items:
-  - Chana Masala (Indian, Spicy, Vegan)
-  - Tofu Pad Thai (Thai, Medium Spice, Vegetarian)
-  - Shakshuka (Middle Eastern, Spicy, Vegetarian)
+✅ Found 5 recommendations:
+============================================================
 
-Recommendation:
-  Based on your preference for spicy vegetarian food, I'd suggest Chana Masala —
-  a hearty Indian chickpea curry bursting with bold spices. If you prefer something
-  lighter, Shakshuka is a wonderful egg-based dish with a rich, spicy tomato sauce.
+1. 🍽️  Chocolate Lava Cake
+        📊 Match Score: 94.2%
+        🏷️  Cuisine: American
+        🔥 Calories: 420 per serving
+        📝 Description: Rich chocolate cake with a gooey center...
+   --------------------------------------------------
+...
+============================================================
+
+💡 Related searches you might like:
+        • Try 'American dishes' for more American options
+        • Try 'hearty meal' for more substantial dishes
 ```
 
 ---
 
-## 🎓 Learning Objectives
+## Part 2 — Advanced Search
 
-By completing this project, you will:
+> 🚧 **Coming Soon**
+>
+> This section will cover advanced search capabilities including multi-filter queries, faceted search, hybrid search strategies, and an enhanced search interface built on top of the ChromaDB collection.
 
-- Understand how **vector databases** work and why they're useful for AI applications
-- Learn to generate and store **text embeddings**
-- Build a complete **RAG pipeline** from scratch
-- See how retrieval improves LLM output quality over pure generation
+---
+
+## Part 3 — RAG Chatbot
+
+> 🚧 **Coming Soon**
+>
+> This section will integrate a Large Language Model (LLM) with the ChromaDB retrieval system to build a conversational RAG-based food recommendation chatbot — capable of understanding complex queries and generating natural language responses grounded in the food dataset.
+
+---
+
+## 🧠 Key Concepts
+
+**ChromaDB** — An open-source vector database that stores and indexes embeddings for fast semantic similarity search.
+
+**Sentence Transformers** — Neural network models that convert text into dense vector embeddings that capture semantic meaning. This project uses `all-MiniLM-L6-v2`.
+
+**Cosine Similarity** — The distance metric used to compare query embeddings against stored food embeddings. A score closer to 1.0 indicates a stronger match.
+
+**RAG (Retrieval-Augmented Generation)** — A technique that retrieves relevant documents from a knowledge base (ChromaDB) and feeds them as context to an LLM to generate accurate, grounded responses.
 
 ---
 
 ## 📄 License
 
-This project is part of the IBM Skills Network curriculum and is intended for educational purposes.
-
----
-
-## 🤝 Acknowledgements
-
-- [ChromaDB](https://www.trychroma.com/)
-- [IBM Skills Network](https://skills.network/)
-- [Sentence Transformers](https://www.sbert.net/)
+This project is part of the IBM Skills Network lab — *Food Recommendation System using ChromaDB and RAG*.
