@@ -1,4 +1,4 @@
-# 🍽️ Food Recommendation System using ChromaDB and RAG
+# Food Recommendation System using ChromaDB and RAG
 
 A hands-on project that builds an intelligent food recommendation chatbot using **ChromaDB** as a vector database and **Retrieval-Augmented Generation (RAG)** to deliver personalized, context-aware food suggestions.
 
