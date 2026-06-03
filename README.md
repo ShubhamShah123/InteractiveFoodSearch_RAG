@@ -19,7 +19,7 @@ A semantic food recommendation system built with **ChromaDB** (vector database) 
 │   └── advanced_search.py            # Entry point for the advanced search system
 │
 ├── Part 3 - RAG Chatbot/
-│   └── (coming soon)
+│   └── enchanced_rag_chatbot.py      # RAG chatbot powered by Gemini & ChromaDB
 │
 └── README.md
 ```
@@ -234,11 +234,118 @@ Enter the cuisine number or name: 1
 
 ---
 
-## Part 3 — RAG Chatbot
+## Part 3 — Enhanced RAG Chatbot
 
-> 🚧 **Coming Soon**
->
-> This section will integrate a Large Language Model (LLM) with the ChromaDB retrieval system to build a conversational RAG-based food recommendation chatbot — capable of understanding complex queries and generating natural language responses grounded in the food dataset.
+A conversational food recommendation chatbot that combines **ChromaDB vector search** with **Google Gemini (`gemini-2.5-flash-lite`)** to generate intelligent, context-aware responses grounded in the food dataset.
+
+### Files
+
+| File | Description |
+|---|---|
+| `enchanced_rag_chatbot.py` | Full RAG pipeline — LLM integration, context preparation, response generation, comparison mode, and the chat loop |
+
+### Setup
+
+**1. Install additional dependencies**
+
+```bash
+pip install langchain-google-genai python-dotenv
+```
+
+**2. Configure your API key**
+
+Create a `.env` file in the project root:
+
+```
+GEMINI_API_KEY=your_google_gemini_api_key_here
+```
+
+### How It Works
+
+**1. Entry Point (`main`)**
+
+Loads the food dataset, creates a ChromaDB collection named `enhanced_rag_food_chatbot`, populates it, then verifies the Gemini LLM connection before launching the chatbot.
+
+**2. RAG Query Pipeline (`handle_enhanced_rag_query` → `generate_llm_rag_response`)**
+
+For every user query:
+- **Retrieve** — `perform_similarity_search` fetches the top 3 semantically similar food items from ChromaDB
+- **Prepare Context** — `prepare_context_for_llm` formats the retrieved results into a structured prompt context (name, description, cuisine, calories, ingredients, health benefits, cooking method, taste profile, similarity score)
+- **Generate** — Gemini produces a friendly, conversational response recommending 2–3 dishes with explanations
+- **Fallback** — if the LLM call fails or returns a short response, `generate_fallback_response` constructs a simple rule-based reply
+
+**3. Comparison Mode (`handle_enhanced_comparision_mode` → `generate_llm_comparison`)**
+
+Triggered by the `compare` command. Takes two separate queries, retrieves top results for each, and prompts Gemini to produce a side-by-side AI analysis covering:
+- Key differences between the two food preferences
+- Similarities and overlaps
+- Situational recommendations
+- Best pick from each query
+
+Falls back to `generate_simple_comparison` if the LLM is unavailable.
+
+**4. Conversation History**
+
+The chatbot maintains a rolling window of the last 5 user inputs (trimmed to 3 when exceeded) for lightweight context continuity across turns.
+
+**5. Chat Loop (`enhanced_rag_food_chatbot`)**
+
+| Command | Action |
+|---|---|
+| Any natural language text | RAG query → Gemini response + top 3 results |
+| `compare` / `c` | Launch AI-powered comparison mode |
+| `help` / `h` | Show detailed help with tips and feature list |
+| `quit` / `exit` / `q` | Exit the chatbot |
+| `Ctrl+C` | Emergency exit |
+
+### Running Part 3
+
+```bash
+python enchanced_rag_chatbot.py
+```
+
+### Sample Interaction
+
+```
+You: I want something spicy and healthy for dinner
+
+[+] Found 3 relevant matches.
+[+] Generating the AI-powered response.
+
+> BOT: Great choice! For a spicy and healthy dinner, I'd recommend
+  the Thai Green Curry — it's packed with vegetables and aromatic
+  herbs at just 320 calories per serving. Another excellent option
+  is the Szechuan Tofu Stir-Fry, a protein-rich dish with bold
+  flavors and only 280 calories. Both options deliver on heat and
+  nutrition without feeling heavy!
+
+1. Thai Green Curry
+    Thai | 320 cal | 89.4%
+
+2. Szechuan Tofu Stir-Fry
+    Chinese | 280 cal | 85.1%
+
+3. Harissa Grilled Chicken
+    Mediterranean | 350 cal | 81.7%
+```
+
+### Architecture Overview
+
+```
+User Query
+    │
+    ▼
+ChromaDB Similarity Search  ──►  Top 3 Food Items
+    │
+    ▼
+prepare_context_for_llm()   ──►  Structured Context
+    │
+    ▼
+Gemini (gemini-2.5-flash-lite)  ──►  Natural Language Response
+    │
+    ▼
+Display Response + Raw Search Results
+```
 
 ---
 
